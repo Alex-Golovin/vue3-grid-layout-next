@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, reactive, watch, onMounted, nextTick} from "vue"
+import {ref, computed, reactive, watch, onMounted, nextTick, onUnmounted} from "vue"
 import {testData} from "./test"
 
 import GridLayout from "./components/Grid/GridLayout.vue"
@@ -19,6 +19,20 @@ function onResetSelected() {
 const selectedItems = computed(() => {
   return testLayout.value.filter(item => item.selected).map(item => item.i)
 })
+
+function handleEscape(event: KeyboardEvent) {
+  if (event.key === "Escape") {
+    onResetSelected()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("keydown", handleEscape)
+})
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleEscape)
+})
 </script>
 
 <template>
@@ -32,6 +46,7 @@ const selectedItems = computed(() => {
         :vertical-compact="true"
         :use-css-transforms="true"
         @reset-selected="onResetSelected"
+        @keypress.esc="onResetSelected"
       >
         <grid-item
           v-for="item in testLayout"
