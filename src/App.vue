@@ -4,7 +4,7 @@ import {testData} from "./test"
 
 import GridLayout from "./components/Grid/GridLayout.vue"
 import GridItem from "./components/Grid/GridItem.vue"
-import ExampleOne from "./example/exampleOne.vue"
+// import ExampleOne from "./example/exampleOne.vue"
 let testLayout = ref(testData)
 
 const refLayout = ref()
@@ -112,6 +112,15 @@ function addDragOverEvent(e: DragEvent) {
   mouseXY.x = e.clientX
   mouseXY.y = e.clientY
 }
+
+function onResetSelected() {
+  testLayout.value.forEach(item => {
+    if (item.selected) {
+      item.selected = false
+    }
+  })
+}
+
 onMounted(() => {
   document.addEventListener("dragover", addDragOverEvent)
 })
@@ -119,7 +128,7 @@ onMounted(() => {
 
 <template>
   <div class="layout">
-    <div
+    <!-- <div
       class="droppable-element"
       draggable="true"
       unselectable="on"
@@ -127,7 +136,7 @@ onMounted(() => {
       @dragend="dragend"
     >
       Droppable Element (Drag me!)
-    </div>
+    </div> -->
     <div id="content">
       <GridLayout
         ref="refLayout"
@@ -137,6 +146,7 @@ onMounted(() => {
         :row-height="30"
         :vertical-compact="true"
         :use-css-transforms="true"
+        @reset-selected="onResetSelected"
       >
         <grid-item
           v-for="item in testLayout"
@@ -148,13 +158,15 @@ onMounted(() => {
           :w="item.w"
           :h="item.h"
           :i="item.i"
+          :selected="item.selected"
           :min-h="3"
           :min-w="3"
           @resized="handleResize"
         >
           <!--<custom-drag-element :text="item.i"></custom-drag-element>-->
           <div>
-            {{ item.i }}
+            <input v-model="item.selected" type="checkbox" />
+            <span>{{ item.i }}</span>
             <!-- {{ style }} -->
           </div>
           <!--<button @click="clicked">CLICK ME!</button>-->
@@ -162,7 +174,7 @@ onMounted(() => {
       </GridLayout>
     </div>
   </div>
-  <ExampleOne></ExampleOne>
+  <!-- <ExampleOne></ExampleOne> -->
 </template>
 
 <style scoped>
@@ -179,5 +191,9 @@ onMounted(() => {
   border: 1px solid black;
   margin: 10px 0;
   padding: 10px;
+}
+
+.grid-item-selected {
+  outline: 2px solid blue;
 }
 </style>

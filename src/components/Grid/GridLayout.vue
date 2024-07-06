@@ -155,6 +155,7 @@ const emit = defineEmits<{
   (e: "layout-ready", layout: Layout): void
   (e: "update:layout", layout: Layout): void
   (e: "breakpoint-changed", newBreakpoint: string, layout: Layout): void
+  (e: "reset-selected"): void
 }>()
 
 // Accessible references of functions for removing in beforeDestroy
@@ -388,8 +389,12 @@ function dragEvent(
   h?: number,
   w?: number
 ) {
-  //console.log(eventName + " id=" + id + ", x=" + x + ", y=" + y);
+  console.log(eventName + " id=" + id + ", x=" + x + ", y=" + y)
   let l = getLayoutItem(props.layout, id)
+  // @ts-ignore
+  if (!l?.selected) {
+    emit("reset-selected")
+  }
 
   //GetLayoutItem sometimes returns null object
   if (l === undefined || l === null) {
@@ -404,14 +409,15 @@ function dragEvent(
       }),
       {}
     )
+    console.log('positionsBeforeDrag.value', positionsBeforeDrag.value)
   }
 
   if (eventName === "dragmove" || eventName === "dragstart") {
-    placeholder.value.i = id as string | number
-    placeholder.value.x = l.x as number
-    placeholder.value.y = l.y as number
-    placeholder.value.w = w as number
-    placeholder.value.h = h as number
+    // placeholder.value.i = id as string | number
+    // placeholder.value.x = l.x as number
+    // placeholder.value.y = l.y as number
+    // placeholder.value.w = w as number
+    // placeholder.value.h = h as number
     nextTick(function () {
       isDragging.value = true
     })
@@ -425,27 +431,28 @@ function dragEvent(
 
   // Move the element to the dragged location.
   // this.layout = moveElement(this.layout, l, x, y, true, this.preventCollision)
-  const layout = moveElement(props.layout, l, x, y, true, props.preventCollision)
-  emit("update:layout", layout)
+  // const layout = moveElement(props.layout, l, x, y, true, props.preventCollision)
+  // emit("update:layout", layout)
 
-  if (props.restoreOnDrag) {
-    // Do not compact items more than in layout before drag
-    // Set moved item as static to avoid to compact it
-    l.static = true
-    compact(props.layout, props.verticalCompact, positionsBeforeDrag.value)
-    l.static = false
-  } else {
-    compact(props.layout, props.verticalCompact)
-  }
+  // if (props.restoreOnDrag) {
+  //   // Do not compact items more than in layout before drag
+  //   // Set moved item as static to avoid to compact it
+  //   l.static = true
+  //   compact(props.layout, props.verticalCompact, positionsBeforeDrag.value)
+  //   l.static = false
+  // } else {
+  //   compact(props.layout, props.verticalCompact)
+  // }
 
   // needed because vue can't detect changes on array element properties
   eventBus.emit("compact")
-  updateHeight()
-  if (eventName === "dragend") {
-    positionsBeforeDrag.value = undefined
-    emit("layout-updated", layout)
-  }
+  // updateHeight()
+  // if (eventName === "dragend") {
+  //   positionsBeforeDrag.value = undefined
+  //   emit("layout-updated", layout)
+  // }
 }
+
 function resizeEvent(
   eventName?: EventType,
   id?: string | number,

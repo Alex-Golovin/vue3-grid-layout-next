@@ -87,6 +87,7 @@ interface PropsChild {
   w: number
   h: number
   i: string | number
+  selected?: boolean
   dragIgnoreFrom?: string
   dragAllowFrom?: string | null
   resizeIgnoreFrom?: string
@@ -127,6 +128,7 @@ const props = withDefaults(defineProps<PropsChild>(), {
   dragAllowFrom: null,
   resizeIgnoreFrom: "a, button",
   preserveAspectRatio: false,
+  selected: false,
   dragOption: () => ({}),
   resizeOption: () => ({})
 })
@@ -190,6 +192,7 @@ const classObj = computed(() => {
   return {
     "vue-resizable": resizableAndNotStatic.value,
     static: props.static,
+    "grid-item-selected": props.selected,
     resizing: isResizing.value,
     "vue-draggable-dragging": isDragging.value,
     cssTransforms: useCssTransforms.value,
@@ -595,93 +598,137 @@ function handleDrag(event: MouseEvent) {
 
   // not possible but satisfies flow
   const {x, y} = position
-  // let shouldUpdate = false;
-  let newPosition = {top: 0, left: 0}
+  let newPosition: {
+    top: number
+    left: number
+  } = {
+    top: 0,
+    left: 0
+  }
   switch (event.type) {
     case "dragstart": {
-      previousX.value = innerX.value
-      previousY.value = innerY.value
-
-      const tg = event.target as HTMLElement
-      const parentTg = tg.offsetParent as HTMLElement
-      let parentRect = parentTg.getBoundingClientRect()
-      let clientRect = tg.getBoundingClientRect()
-
-      const cLeft = clientRect.left / transformScale.value
-      const pLeft = parentRect.left / transformScale.value
-      const cRight = clientRect.right / transformScale.value
-      const pRight = parentRect.right / transformScale.value
-      const cTop = clientRect.top / transformScale.value
-      const pTop = parentRect.top / transformScale.value
-
-      if (renderRtl.value) {
-        newPosition.left = (cRight - pRight) * -1
-      } else {
-        newPosition.left = cLeft - pLeft
-      }
-      newPosition.top = cTop - pTop
-      dragging.value = newPosition as Pos
-      isDragging.value = true
+      newPosition = handleDragStart(event)
       break
     }
     case "dragend": {
       if (!isDragging.value) return
-      emit("dragend", event, props.i)
-      const tg = event.target as HTMLElement
-      const parentTg = tg.offsetParent as HTMLElement
-      let parentRect = parentTg.getBoundingClientRect()
-      let clientRect = tg.getBoundingClientRect()
-
-      const cLeft = clientRect.left / transformScale.value
-      const pLeft = parentRect.left / transformScale.value
-      const cRight = clientRect.right / transformScale.value
-      const pRight = parentRect.right / transformScale.value
-      const cTop = clientRect.top / transformScale.value
-      const pTop = parentRect.top / transformScale.value
-
-      //                        Add rtl support
-      if (renderRtl.value) {
-        newPosition.left = (cRight - pRight) * -1
-      } else {
-        newPosition.left = cLeft - pLeft
-      }
-      newPosition.top = cTop - pTop
-      //                        console.log("### drag end => " + JSON.stringify(newPosition));
-      //                        console.log("### DROP: " + JSON.stringify(newPosition));
-      dragging.value = null
-      isDragging.value = false
-      // shouldUpdate = true;
+      newPosition = handleDragEnd(event)
       break
     }
     case "dragmove": {
-      emit("dragging", event, props.i)
-      const coreEvent = createCoreData(lastX.value, lastY.value, x, y)
-      //                        Add rtl support
-      if (renderRtl.value) {
-        newPosition.left = Number(dragging.value?.left) - coreEvent.deltaX / transformScale.value
-      } else {
-        newPosition.left = Number(dragging.value?.left) + coreEvent.deltaX / transformScale.value
-      }
-      newPosition.top = Number(dragging.value?.top) + coreEvent.deltaY / transformScale.value
-      if (bounded.value) {
-        const tg = event.target as HTMLElement
-        const parentTg = tg.offsetParent as HTMLElement
-        const bottomBoundary =
-          parentTg.clientHeight - calcGridItemWHPx(props.h, rowHeight.value, margin.value[1])
-        newPosition.top = clamp(newPosition.top, 0, bottomBoundary)
-        const colWidth = calcColWidth()
-        const rightBoundary =
-          containerWidth.value - calcGridItemWHPx(props.w, colWidth, margin.value[0])
-        newPosition.left = clamp(newPosition.left, 0, rightBoundary)
-      }
-      //                        console.log("### drag => " + event.type + ", x=" + x + ", y=" + y);
-      //                        console.log("### drag => " + event.type + ", deltaX=" + coreEvent.deltaX + ", deltaY=" + coreEvent.deltaY);
-      //                        console.log("### drag end => " + JSON.stringify(newPosition));
-      dragging.value = newPosition as Pos
+      newPosition = handleDragMove(event, position)
       break
     }
   }
 
+  updatePosition(newPosition, x, y, event)
+}
+
+function handleDragStart(event: MouseEvent) {
+  const newPosition = {
+    top: 0,
+    left: 0
+  }
+  previousX.value = innerX.value
+  previousY.value = innerY.value
+
+  const tg = event.target as HTMLElement
+  const parentTg = tg.offsetParent as HTMLElement
+  let parentRect = parentTg.getBoundingClientRect()
+  let clientRect = tg.getBoundingClientRect()
+
+  const cLeft = clientRect.left / transformScale.value
+  const pLeft = parentRect.left / transformScale.value
+  const cRight = clientRect.right / transformScale.value
+  const pRight = parentRect.right / transformScale.value
+  const cTop = clientRect.top / transformScale.value
+  const pTop = parentRect.top / transformScale.value
+
+  if (renderRtl.value) {
+    newPosition.left = (cRight - pRight) * -1
+  } else {
+    newPosition.left = cLeft - pLeft
+  }
+  newPosition.top = cTop - pTop
+  dragging.value = newPosition as Pos
+  isDragging.value = true
+  return newPosition
+}
+
+function handleDragMove(event: MouseEvent, position: {x: number; y: number}) {
+  const {x, y} = position
+
+  const newPosition = {
+    top: 0,
+    left: 0
+  }
+
+  emit("dragging", event, props.i)
+  const coreEvent = createCoreData(lastX.value, lastY.value, x, y)
+  //                        Add rtl support
+  if (renderRtl.value) {
+    newPosition.left = Number(dragging.value?.left) - coreEvent.deltaX / transformScale.value
+  } else {
+    newPosition.left = Number(dragging.value?.left) + coreEvent.deltaX / transformScale.value
+  }
+  newPosition.top = Number(dragging.value?.top) + coreEvent.deltaY / transformScale.value
+  if (bounded.value) {
+    const tg = event.target as HTMLElement
+    const parentTg = tg.offsetParent as HTMLElement
+    const bottomBoundary =
+      parentTg.clientHeight - calcGridItemWHPx(props.h, rowHeight.value, margin.value[1])
+    newPosition.top = clamp(newPosition.top, 0, bottomBoundary)
+    const colWidth = calcColWidth()
+    const rightBoundary =
+      containerWidth.value - calcGridItemWHPx(props.w, colWidth, margin.value[0])
+    newPosition.left = clamp(newPosition.left, 0, rightBoundary)
+  }
+  //                        console.log("### drag => " + event.type + ", x=" + x + ", y=" + y);
+  //                        console.log("### drag => " + event.type + ", deltaX=" + coreEvent.deltaX + ", deltaY=" + coreEvent.deltaY);
+  //                        console.log("### drag end => " + JSON.stringify(newPosition));
+  dragging.value = newPosition as Pos
+  return newPosition
+}
+
+function handleDragEnd(event: MouseEvent) {
+  const newPosition = {
+    top: 0,
+    left: 0
+  }
+  emit("dragend", event, props.i)
+  const tg = event.target as HTMLElement
+  const parentTg = tg.offsetParent as HTMLElement
+  let parentRect = parentTg.getBoundingClientRect()
+  let clientRect = tg.getBoundingClientRect()
+
+  const cLeft = clientRect.left / transformScale.value
+  const pLeft = parentRect.left / transformScale.value
+  const cRight = clientRect.right / transformScale.value
+  const pRight = parentRect.right / transformScale.value
+  const cTop = clientRect.top / transformScale.value
+  const pTop = parentRect.top / transformScale.value
+
+  //                        Add rtl support
+  if (renderRtl.value) {
+    newPosition.left = (cRight - pRight) * -1
+  } else {
+    newPosition.left = cLeft - pLeft
+  }
+  newPosition.top = cTop - pTop
+  //                        console.log("### drag end => " + JSON.stringify(newPosition));
+  //                        console.log("### DROP: " + JSON.stringify(newPosition));
+  dragging.value = null
+  isDragging.value = false
+
+  return newPosition
+}
+
+function updatePosition(
+  newPosition: {top: number; left: number},
+  x: number,
+  y: number,
+  event: MouseEvent
+) {
   // Get new XY
   let pos
   if (renderRtl.value) {
@@ -712,6 +759,7 @@ function handleDrag(event: MouseEvent) {
   }
   eventBus.emit("dragEvent", data)
 }
+
 function calcPosition(x: number, y: number, w: number, h: number): Pos {
   const colWidth = calcColWidth()
   // add rtl support

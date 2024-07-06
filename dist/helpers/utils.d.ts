@@ -14,6 +14,7 @@ export type LayoutItem = LayoutItemRequired & {
     static?: boolean;
     isDraggable?: boolean;
     isResizable?: boolean;
+    selected?: boolean;
 };
 export type Layout = Array<LayoutItem>;
 export type Size = {
