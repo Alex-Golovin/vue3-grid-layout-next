@@ -66,7 +66,6 @@ onUnmounted(() => {
           <div>
             <input v-model="item.selected" type="checkbox" />
             <span>{{ item.i }}</span>
-            <!-- {{ style }} -->
           </div>
           <!--<button @click="clicked">CLICK ME!</button>-->
         </grid-item>

@@ -66,8 +66,7 @@ import mitt, {Emitter, EventType} from "mitt"
 
 import GridItem from "./GridItem.vue"
 
-// TODO
-// import elementResizeDetectorMaker from "element-resize-detector"
+import elementResizeDetectorMaker from "element-resize-detector"
 import {
   bottom,
   compact,

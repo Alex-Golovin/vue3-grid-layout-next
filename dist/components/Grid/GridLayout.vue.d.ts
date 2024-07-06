@@ -127,6 +127,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
         static?: boolean | undefined;
         isDraggable?: boolean | undefined;
         isResizable?: boolean | undefined;
+        selected?: boolean | undefined;
     }[] | null>;
     erd: import('vue').Ref<{
         listenTo: (element: HTMLElement, callback: (elem: HTMLElement) => void) => void;
@@ -178,6 +179,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     "layout-ready": (layout: Layout) => void;
     "update:layout": (layout: Layout) => void;
     "breakpoint-changed": (newBreakpoint: string, layout: Layout) => void;
+    "reset-selected": () => void;
 }, string, import('vue').PublicProps, Readonly<import('vue').ExtractPropTypes<__VLS_WithDefaults<__VLS_TypePropsToRuntimeProps<Props>, {
     autoSize: boolean;
     colNum: number;
@@ -218,6 +220,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     "onLayout-ready"?: ((layout: Layout) => any) | undefined;
     "onUpdate:layout"?: ((layout: Layout) => any) | undefined;
     "onBreakpoint-changed"?: ((newBreakpoint: string, layout: Layout) => any) | undefined;
+    "onReset-selected"?: (() => any) | undefined;
 }, {
     isDraggable: boolean;
     isResizable: boolean;
