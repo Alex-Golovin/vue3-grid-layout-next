@@ -43,6 +43,7 @@ const thisLayout = proxy?.$parent as Ins
 const eventBus = inject("eventBus") as Emitter<{
   resizeEvent?: EventsData
   dragEvent?: EventsData
+  dragSelected?: any
   updateWidth: number
   setColNum: number
   setRowHeight: number
@@ -88,6 +89,7 @@ interface PropsChild {
   h: number
   i: string | number
   selected?: boolean
+  selectedItems?: (string | number)[]
   dragIgnoreFrom?: string
   dragAllowFrom?: string | null
   resizeIgnoreFrom?: string
@@ -129,6 +131,7 @@ const props = withDefaults(defineProps<PropsChild>(), {
   resizeIgnoreFrom: "a, button",
   preserveAspectRatio: false,
   selected: false,
+  selectedItems: () => [],
   dragOption: () => ({}),
   resizeOption: () => ({})
 })
@@ -587,7 +590,19 @@ function handleResize(event: MouseEvent) {
   }
 }
 
-function handleDrag(event: MouseEvent) {
+function handleDrag(event: MouseEvent, isDragSelected?: boolean) {
+  if (!isDragSelected && props.selected && props.selectedItems.length > 1) {
+    // to drag other selected items
+    props.selectedItems
+      .filter(i => i !== props.i)
+      .forEach(i => {
+        eventBus.emit("dragSelected", {
+          event,
+          i
+        })
+      })
+  }
+
   if (props.static) return
   if (isResizing.value) return
 
@@ -607,7 +622,7 @@ function handleDrag(event: MouseEvent) {
   }
   switch (event.type) {
     case "dragstart": {
-      newPosition = handleDragStart(event)
+      newPosition = handleDragStart()
       break
     }
     case "dragend": {
@@ -624,7 +639,7 @@ function handleDrag(event: MouseEvent) {
   updatePosition(newPosition, x, y, event)
 }
 
-function handleDragStart(event: MouseEvent) {
+function handleDragStart() {
   const newPosition = {
     top: 0,
     left: 0
@@ -632,7 +647,7 @@ function handleDragStart(event: MouseEvent) {
   previousX.value = innerX.value
   previousY.value = innerY.value
 
-  const tg = event.target as HTMLElement
+  const tg = this$refsItem.value as HTMLElement
   const parentTg = tg.offsetParent as HTMLElement
   let parentRect = parentTg.getBoundingClientRect()
   let clientRect = tg.getBoundingClientRect()
@@ -696,7 +711,7 @@ function handleDragEnd(event: MouseEvent) {
     left: 0
   }
   emit("dragend", event, props.i)
-  const tg = event.target as HTMLElement
+  const tg = this$refsItem.value as HTMLElement
   const parentTg = tg.offsetParent as HTMLElement
   let parentRect = parentTg.getBoundingClientRect()
   let clientRect = tg.getBoundingClientRect()
@@ -893,6 +908,11 @@ function tryMakeDraggable() {
       dragEventSet.value = true
       interactObj.value.on("dragstart dragmove dragend", function (event) {
         handleDrag(event)
+      })
+      eventBus.on("dragSelected", ({event, i}: {event: MouseEvent; i: number | string}) => {
+        if (i === props.i) {
+          handleDrag(event, true)
+        }
       })
     }
   } else {

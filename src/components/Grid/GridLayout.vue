@@ -61,7 +61,7 @@ export interface LayoutData {
   positionsBeforeDrag: {[key: string]: string}
   this$refsLayout: HTMLElement
 }
-import {ref, onMounted, onBeforeUnmount, provide, onBeforeMount, nextTick, watch} from "vue"
+import {ref, computed, onMounted, onBeforeUnmount, provide, onBeforeMount, nextTick, watch} from "vue"
 import mitt, {Emitter, EventType} from "mitt"
 
 import GridItem from "./GridItem.vue"
@@ -389,7 +389,7 @@ function dragEvent(
   h?: number,
   w?: number
 ) {
-  console.log(eventName + " id=" + id + ", x=" + x + ", y=" + y)
+  // console.log(eventName + " id=" + id + ", x=" + x + ", y=" + y)
   let l = getLayoutItem(props.layout, id)
   // @ts-ignore
   if (!l?.selected) {
@@ -431,26 +431,26 @@ function dragEvent(
 
   // Move the element to the dragged location.
   // this.layout = moveElement(this.layout, l, x, y, true, this.preventCollision)
-  // const layout = moveElement(props.layout, l, x, y, true, props.preventCollision)
-  // emit("update:layout", layout)
+  const layout = moveElement(props.layout, l, x, y, true, props.preventCollision)
+  emit("update:layout", layout)
 
-  // if (props.restoreOnDrag) {
-  //   // Do not compact items more than in layout before drag
-  //   // Set moved item as static to avoid to compact it
-  //   l.static = true
-  //   compact(props.layout, props.verticalCompact, positionsBeforeDrag.value)
-  //   l.static = false
-  // } else {
-  //   compact(props.layout, props.verticalCompact)
-  // }
+  if (props.restoreOnDrag) {
+    // Do not compact items more than in layout before drag
+    // Set moved item as static to avoid to compact it
+    l.static = true
+    compact(props.layout, props.verticalCompact, positionsBeforeDrag.value)
+    l.static = false
+  } else {
+    compact(props.layout, props.verticalCompact)
+  }
 
   // needed because vue can't detect changes on array element properties
   eventBus.emit("compact")
-  // updateHeight()
-  // if (eventName === "dragend") {
-  //   positionsBeforeDrag.value = undefined
-  //   emit("layout-updated", layout)
-  // }
+  updateHeight()
+  if (eventName === "dragend") {
+    positionsBeforeDrag.value = undefined
+    emit("layout-updated", layout)
+  }
 }
 
 function resizeEvent(
@@ -600,5 +600,9 @@ defineExpose({
 .vue-grid-layout {
   position: relative;
   transition: height 200ms ease;
+}
+
+.vue-grid-placeholder {
+  display: none !important;
 }
 </style>
