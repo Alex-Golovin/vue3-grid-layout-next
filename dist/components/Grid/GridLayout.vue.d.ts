@@ -23,6 +23,7 @@ export interface Props {
     restoreOnDrag?: boolean;
     layout: Layout;
     responsive?: boolean;
+    keepAspectRatio?: boolean;
     responsiveLayouts?: {
         [key: string]: any;
     };
@@ -70,6 +71,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     autoSize: boolean;
     colNum: number;
     rowHeight: number;
+    keepAspectRatio: boolean;
     maxRows: number;
     margin: () => number[];
     isDraggable: boolean;
@@ -144,6 +146,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     autoSize: boolean;
     colNum: number;
     rowHeight: number;
+    keepAspectRatio: boolean;
     maxRows: number;
     margin: number[];
     isDraggable: boolean;
@@ -186,10 +189,15 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     "update:layout": (layout: Layout) => void;
     "breakpoint-changed": (newBreakpoint: string, layout: Layout) => void;
     "reset-selected": () => void;
+    "update-width": (args_0: {
+        width: number;
+        marginX: number;
+    }) => void;
 }, string, import('vue').PublicProps, Readonly<import('vue').ExtractPropTypes<__VLS_WithDefaults<__VLS_TypePropsToRuntimeProps<Props>, {
     autoSize: boolean;
     colNum: number;
     rowHeight: number;
+    keepAspectRatio: boolean;
     maxRows: number;
     margin: () => number[];
     isDraggable: boolean;
@@ -227,6 +235,10 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     "onUpdate:layout"?: ((layout: Layout) => any) | undefined;
     "onBreakpoint-changed"?: ((newBreakpoint: string, layout: Layout) => any) | undefined;
     "onReset-selected"?: (() => any) | undefined;
+    "onUpdate-width"?: ((args_0: {
+        width: number;
+        marginX: number;
+    }) => any) | undefined;
 }, {
     isDraggable: boolean;
     isResizable: boolean;
@@ -249,6 +261,7 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
     isMirrored: boolean;
     verticalCompact: boolean;
     restoreOnDrag: boolean;
+    keepAspectRatio: boolean;
     responsiveLayouts: {
         [key: string]: any;
     };

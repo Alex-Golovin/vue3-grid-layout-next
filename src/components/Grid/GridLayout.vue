@@ -41,6 +41,7 @@ export interface Props {
   restoreOnDrag?: boolean
   layout: Layout
   responsive?: boolean
+  keepAspectRatio?: boolean
   responsiveLayouts?: {[key: string]: any}
   transformScale?: number
   breakpoints?: {lg: number; md: number; sm: number; xs: number; xxs: number}
@@ -95,7 +96,8 @@ import {addWindowEventListener, removeWindowEventListener, EventsData} from "@/h
 const props = withDefaults(defineProps<Props>(), {
   autoSize: true,
   colNum: 12,
-  rowHeight: 100,
+  rowHeight: 0,
+  keepAspectRatio: false,
   maxRows: Infinity,
   margin: () => [10, 10],
   isDraggable: true,
@@ -145,6 +147,14 @@ const eventBus: Emitter<{
   compact: void
 }> = mitt()
 
+const rowHeightComputed = computed(() => {
+  if (!props.rowHeight && width.value && props.keepAspectRatio) {
+    const colWidth = (width.value - props.margin[0] * (props.colNum + 1)) / props.colNum
+    return colWidth
+  }
+  return props.rowHeight || 100
+})
+
 provide("eventBus", eventBus)
 // provide("thisLayout", proxy)
 // add listen
@@ -156,7 +166,8 @@ const emit = defineEmits<{
   (e: "layout-ready", layout: Layout): void
   (e: "update:layout", layout: Layout): void
   (e: "breakpoint-changed", newBreakpoint: string, layout: Layout): void
-  (e: "reset-selected"): void
+  (e: "reset-selected"): void,
+  (e: "update-width", {width, marginX}: {width: number; marginX: number}): void
 }>()
 
 // Accessible references of functions for removing in beforeDestroy
@@ -230,6 +241,12 @@ onMounted(() => {
 watch(width, (newVal, oldVal) => {
   nextTick(() => {
     eventBus.emit("updateWidth", newVal)
+    if (newVal != null) {
+      emit("update-width", {
+        width: newVal,
+        marginX: props.margin[0]
+      })
+    }
     if (oldVal === null) {
       /*
         If oldval == null is when the width has never been
@@ -278,7 +295,7 @@ watch(
   }
 )
 watch(
-  () => props.rowHeight,
+  () => rowHeightComputed.value,
   val => {
     eventBus.emit("setRowHeight", val)
   }
@@ -378,7 +395,7 @@ function containerHeight(): string {
   // console.log("bottom: " + bottom(this.layout))
   // console.log("rowHeight + margins: " + (this.rowHeight + this.margin[1]) + this.margin[1])
   const containerHeight =
-    bottom(props.layout) * (props.rowHeight + props.margin[1]) + props.margin[1] + "px"
+    bottom(props.layout) * (rowHeightComputed.value + props.margin[1]) + props.margin[1] + "px"
   return containerHeight
 }
 

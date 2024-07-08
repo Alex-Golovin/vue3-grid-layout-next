@@ -37,7 +37,7 @@ onUnmounted(() => {
 // @ts-ignore
 function preventCollisionCheck({layout, layoutItem}) {
   // console.log('preventCollisionCheck', layout, layoutItem)
-  return true
+  return false
 }
 </script>
 
@@ -45,13 +45,14 @@ function preventCollisionCheck({layout, layoutItem}) {
   <div class="layout">
     <div id="content">
       <GridLayout
-        v-model:layout="testLayout"
-        :responsive="responsive"
+        :layout.sync="testLayout"
         :col-num="12"
-        :row-height="30"
+        :keep-aspect-ratio="true"
+        :is-draggable="true"
+        :is-resizable="true"
         :vertical-compact="false"
-        :use-css-transforms="true"
         :prevent-collision="preventCollisionCheck"
+        :use-css-transforms="true"
         @reset-selected="onResetSelected"
       >
         <grid-item
