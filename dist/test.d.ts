@@ -5,4 +5,5 @@ export declare const testData: {
     h: number;
     i: string;
     selected?: boolean;
+    static?: boolean;
 }[];

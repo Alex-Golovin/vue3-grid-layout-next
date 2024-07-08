@@ -1,6 +1,6 @@
 import { EventType } from 'mitt';
 import { default as elementResizeDetectorMaker } from 'element-resize-detector';
-import { Layout } from '../../helpers/utils';
+import { Layout, LayoutItem } from '../../helpers/utils';
 export interface Placeholder {
     x: number;
     y: number;
@@ -41,7 +41,10 @@ export interface Props {
         xs: number;
         xxs: number;
     };
-    preventCollision?: boolean;
+    preventCollision?: boolean | (({ layout, layoutItem }: {
+        layout: Layout;
+        layoutItem: LayoutItem;
+    }) => boolean);
     useStyleCursor?: boolean;
 }
 export interface LayoutData {
@@ -169,7 +172,10 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
         xs: number;
         xxs: number;
     };
-    preventCollision: boolean;
+    preventCollision: boolean | (({ layout, layoutItem }: {
+        layout: Layout;
+        layoutItem: LayoutItem;
+    }) => boolean);
     useStyleCursor: boolean;
 }, unknown, {}, {}, import('vue').ComponentOptionsMixin, import('vue').ComponentOptionsMixin, {
     "layout-created": (layout: Layout) => void;
@@ -253,7 +259,10 @@ declare const _default: __VLS_WithTemplateSlots<import('vue').DefineComponent<__
         xs: number;
         xxs: number;
     };
-    preventCollision: boolean;
+    preventCollision: boolean | (({ layout, layoutItem }: {
+        layout: Layout;
+        layoutItem: LayoutItem;
+    }) => boolean);
     useStyleCursor: boolean;
 }, {}>, {
     default?(_: {}): any;
