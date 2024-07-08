@@ -33,6 +33,12 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener("keydown", handleEscape)
 })
+
+// @ts-ignore
+function preventCollisionCheck({layout, layoutItem}) {
+  // console.log('preventCollisionCheck', layout, layoutItem)
+  return true
+}
 </script>
 
 <template>
@@ -43,8 +49,9 @@ onUnmounted(() => {
         :responsive="responsive"
         :col-num="12"
         :row-height="30"
-        :vertical-compact="true"
+        :vertical-compact="false"
         :use-css-transforms="true"
+        :prevent-collision="preventCollisionCheck"
         @reset-selected="onResetSelected"
         @keypress.esc="onResetSelected"
       >
@@ -61,6 +68,7 @@ onUnmounted(() => {
           :selected-items="selectedItems"
           :min-h="3"
           :min-w="3"
+          :static="item.static"
         >
           <!--<custom-drag-element :text="item.i"></custom-drag-element>-->
           <div>

@@ -45,7 +45,9 @@ export interface Props {
   transformScale?: number
   breakpoints?: {lg: number; md: number; sm: number; xs: number; xxs: number}
   cols?: {lg: number; md: number; sm: number; xs: number; xxs: number}
-  preventCollision?: boolean
+  preventCollision?:
+    | boolean
+    | (({layout, layoutItem}: {layout: Layout; layoutItem: LayoutItem}) => boolean)
   useStyleCursor?: boolean
 }
 export interface LayoutData {
@@ -408,7 +410,6 @@ function dragEvent(
       }),
       {}
     )
-    console.log('positionsBeforeDrag.value', positionsBeforeDrag.value)
   }
 
   if (eventName === "dragmove" || eventName === "dragstart") {
@@ -429,8 +430,9 @@ function dragEvent(
   }
 
   // Move the element to the dragged location.
+  const preventCollision = getPreventCollisionValue(l)
   // this.layout = moveElement(this.layout, l, x, y, true, this.preventCollision)
-  const layout = moveElement(props.layout, l, x, y, true, props.preventCollision)
+  const layout = moveElement(props.layout, l, x, y, true, preventCollision)
   emit("update:layout", layout)
 
   if (props.restoreOnDrag) {
@@ -452,6 +454,16 @@ function dragEvent(
   }
 }
 
+function getPreventCollisionValue(layoutItem: LayoutItem) {
+  if (typeof props.preventCollision === "function") {
+    return props.preventCollision({
+      layout: props.layout,
+      layoutItem: layoutItem
+    })
+  }
+  return props.preventCollision
+}
+
 function resizeEvent(
   eventName?: EventType,
   id?: string | number,
@@ -468,7 +480,8 @@ function resizeEvent(
   w = Number(w)
   h = Number(h)
   let hasCollisions
-  if (props.preventCollision) {
+  const preventCollision = getPreventCollisionValue(l)
+  if (preventCollision) {
     const collisions = getAllCollisions(props.layout, {...l, w, h}).filter(
       layoutItem => layoutItem.i !== l?.i
     )
